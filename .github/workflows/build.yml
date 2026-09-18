@@ -1,0 +1,48 @@
+name: build
+
+# Public repo, deliberately: GHCR packages inherit their source repo's
+# visibility, so images built here come out public with zero manual
+# steps -- see fluxraum/poc-flx-application-hosting-service's git history
+# for why that matters (three attempts to automate a private->public
+# visibility change via the GitHub API all 404'd; that API doesn't
+# appear to exist -- only the web UI does, and doing it by hand for every
+# new app wasn't acceptable).
+
+on:
+  pull_request:
+    paths: ["apps/**"]
+  push:
+    branches: [main]
+    paths: ["apps/**"]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  packages: write # only needed on main, to push the image
+
+jobs:
+  build-and-publish:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        app: [four-eyes-demo]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: meta
+        run: echo "tag=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: apps/${{ matrix.app }}
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/${{ matrix.app }}:${{ steps.meta.outputs.tag }}
+            ghcr.io/${{ github.repository_owner }}/${{ matrix.app }}:latest
