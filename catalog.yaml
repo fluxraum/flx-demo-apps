@@ -1,0 +1,29 @@
+# Read live by the platform's control-plane API (see
+# fluxraum/poc-flx-application-hosting-service's app/catalog.py) to
+# extend its instance-creation catalog with one-click "demo apps" --
+# distinct from that repo's own catalog/catalog.yaml, which lists raw
+# hosting *templates* (streamlit, fastmcp, jupyterlab) that need the
+# user to supply their own image/host. Entries here are specific,
+# pre-built apps: the image and how they're reached are already decided,
+# so deploying one is just picking it and clicking Deploy.
+#
+# `template` names which of the platform's hosting templates this app
+# deploys through -- the chart itself, and everything about routing that
+# isn't specific to this one app (ingress collision-safety, TLS, etc.),
+# still comes from there. Adding an app here doesn't need a platform
+# change; the platform picks this file up on its own (short-TTL cache,
+# not a live-on-every-request fetch -- see catalog.py).
+apps:
+  - id: four-eyes-demo
+    name: Four-Eyes Demo
+    description: >
+      Maker-checker (Vier-Augen-Prinzip) demo -- whoever submits a
+      request can't approve it themselves, enforced against the real
+      SSO identity the platform's oauth2-proxy forwards, not a fake
+      user picker.
+    template: streamlit
+    image:
+      repository: ghcr.io/fluxraum/four-eyes-demo
+      tag: latest
+    ingressPath: /four-eyes
+    auth: true
