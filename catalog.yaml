@@ -27,3 +27,9 @@ apps:
       tag: latest
     ingressPath: /four-eyes
     auth: true
+    # Attached automatically, no user choice -- must match an id from
+    # the platform's own data-mounts list (see that repo's
+    # app/data_mounts.py). Not currently used by this app's own logic;
+    # here so the platform gets exercised consistently the same way
+    # JupyterLab does, per the request that asked for this.
+    dataMount: shared-datasets
